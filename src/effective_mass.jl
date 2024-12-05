@@ -100,16 +100,15 @@ end
 # returns a set of iterators for each additional dimension of the array. We then
 # loop over every additional index using the `Iterators.product` utility 
 function implicit_meff(corrs::AbstractArray;sign=+1)
-    d = ndims(corrs)
     it, iMC, ind... = axes(corrs)
     size_meff_array = (size(corrs,1),size(corrs)[3:end]...)
     meff  = zeros(eltype(corrs),size_meff_array)
     Δmeff = zeros(eltype(corrs),size_meff_array)
-    #@showprogress "Jackknife analysis for effective mass:" for i in Iterators.product(ind...)
+
     for i in Iterators.product(ind...)
         # slurping is needed to correctly insert the tuple i into an index
         c = @view corrs[:,:,i...]
-        meff[:,i...], Δmeff[:,i...] = implicit_meff_jackknife(c;sign)
+        meff[:,i...], Δmeff[:,i...] = implicit_meff(c::AbstractMatrix;sign)
     end
     return meff, Δmeff
 end
