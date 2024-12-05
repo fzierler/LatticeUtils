@@ -24,17 +24,13 @@ function _meff_at_t(c::AbstractVector,t,T;sign=+1)
     # multiply by overall sign that has been previously extracted
     return abs(m)
 end
-function meff_from_jackknife(eigenvalues_jk;sign=+1,swap=nothing)
-    nops, nsamples, T = size(eigenvalues_jk)
-    meff_jk = similar(eigenvalues_jk)
+function implicit_meff_jackknife(samples;sign=+1)
+    nops, nsamples, T = size(samples)
+    meff_samples = similar(samples)
     for op in 1:nops, sample in 1:nsamples
-        meff_jk[op,sample,:] = implicit_meff(eigenvalues_jk[op,sample,:];sign) 
+        meff_samples[op,sample,:] = implicit_meff(samples[op,sample,:];sign) 
     end
-    meff, Δmeff = nan_apply_jackknife(meff_jk;dims=2)
-    if !isnothing(swap)
-        _swap_at_crossing(meff, swap)
-        _swap_at_crossing(Δmeff,swap)    
-    end
+    meff, Δmeff = nan_apply_jackknife(meff_samples;dims=2)
     return meff, Δmeff
 end
 """
