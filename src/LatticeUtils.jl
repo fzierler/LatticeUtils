@@ -21,6 +21,8 @@ module LatticeUtils
     export fit_corr
     include("pcac.jl")
     export awi_corr, awi_fit
+    include("errorstring.jl")
+    export errorstring
 
 
 end # module LatticeUtils
