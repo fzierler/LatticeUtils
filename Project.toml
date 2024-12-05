@@ -1,3 +1,8 @@
+name = "LatticeUtils"
+uuid = "faef5128-6048-4e09-bb0e-6a325a68fa81"
+authors = ["Fabian Zierler <fabian.zierler@a1.net>"]
+version = "0.1.0"
+
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
