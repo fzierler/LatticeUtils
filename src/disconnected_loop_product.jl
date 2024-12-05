@@ -21,8 +21,7 @@ function disconnected_loop_product(discon1,discon2;rescale=1,subtract_vev=false,
     # permute dimensions for better memory acces
     discon1 = permutedims(discon1,(2,3,1))
     discon2 = permutedims(discon2,(2,3,1))
-    sum_loop2 = sum(discon2,dims=1)
-
+    
     nconf = min(nconf1,nconf2)
     timavg = zeros(eltype(discon1),(T,nconf))
     norm   = T*nhits1*nhits2
@@ -35,6 +34,8 @@ function disconnected_loop_product(discon1,discon2;rescale=1,subtract_vev=false,
             discon2[h,t,conf] = discon2[h,t,conf] - vev2[t]
         end
     end
+    
+    sum_loop2 = sum(discon2,dims=1)
     for conf in 1:nconf
         for t in 1:T
             for t0 in 1:T
