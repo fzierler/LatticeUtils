@@ -10,7 +10,7 @@ module LatticeUtils
     include("effective_mass.jl")
     export implicit_meff
     include("unbiased_estimator.jl")
-    export unbiased_estimator
+    export disconnected_loop_product
     include("variational_analysis.jl")
     export eigenvalues, eigenvalues_jackknife_samples, eigenvalues_eigenvectors, eigenvalues_eigenvectors_jackknife_samples
     include("plotting.jl")
