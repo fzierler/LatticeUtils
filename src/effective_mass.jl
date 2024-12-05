@@ -1,3 +1,55 @@
+function _meff_generic_jackknife(samples,f;kws...)
+    nops, nsamples, T = size(samples)
+    meff_samples = similar(samples)
+    for op in 1:nops, sample in 1:nsamples
+        meff_samples[op,sample,:] = f(samples[op,sample,:];kws...) 
+    end
+    meff, Δmeff = nan_apply_jackknife(meff_samples;dims=2)
+    return meff, Δmeff
+end
+function _meff_generic(c::AbstractVector,Δc::AbstractVector,f;kws...)
+    m1 = f(c;sign)
+    m2 = f(c + Δc;sign)
+    m3 = f(c - Δc;sign)
+    Δm = @. abs(m3-m2)/2
+    return m1, Δm
+end
+function _meff_generic(corrs::AbstractMatrix,f;kws...)
+    T, N = size(corrs)
+    # create arrays for decay constant
+    corrs_delete1 = zeros(T,N-1)
+    meff = zeros(N,T)
+    # set up jack-knife (one deletion)
+    for i in 1:N
+        for t in 1:T
+            for j in 1:N
+               (j < i) && (corrs_delete1[t,j]   = corrs[t,j])
+               (j > i) && (corrs_delete1[t,j-1] = corrs[t,j])
+            end
+        end
+        # perform averaging for fitting weights
+        C = reshape(mean(corrs_delete1,dims=2),T)
+        meff[i,:] = f(C;kws...)
+    end
+    return nan_apply_jackknife(meff,dims=1)
+end
+# This function takes care of arrays with additional inidces. The additional 
+# indices are collected as ind by the use of the `axes(corr)` function. This 
+# returns a set of iterators for each additional dimension of the array. We then
+# loop over every additional index using the `Iterators.product` utility 
+function _meff_generic(corrs::AbstractArray,f;kws...)
+    it, iMC, ind... = axes(corrs)
+    size_meff_array = (size(corrs,1),size(corrs)[3:end]...)
+    meff  = zeros(eltype(corrs),size_meff_array)
+    Δmeff = zeros(eltype(corrs),size_meff_array)
+
+    for i in Iterators.product(ind...)
+        # slurping is needed to correctly insert the tuple i into an index
+        c = @view corrs[:,:,i...]
+        meff[:,i...], Δmeff[:,i...] = f(c::AbstractMatrix;kws...)
+    end
+    return meff, Δmeff
+end
 # see equation (10) in arXiv:1607.06654 [hep-lat]
 # (Notation in Gattringer/Lang is misleading!)
 function _meff_at_t(c::AbstractVector,t,T;sign=+1)
@@ -23,15 +75,6 @@ function _meff_at_t(c::AbstractVector,t,T;sign=+1)
     end
     # multiply by overall sign that has been previously extracted
     return abs(m)
-end
-function implicit_meff_jackknife(samples;sign=+1)
-    nops, nsamples, T = size(samples)
-    meff_samples = similar(samples)
-    for op in 1:nops, sample in 1:nsamples
-        meff_samples[op,sample,:] = implicit_meff(samples[op,sample,:];sign) 
-    end
-    meff, Δmeff = nan_apply_jackknife(meff_samples;dims=2)
-    return meff, Δmeff
 end
 """
     implicit_meff(c::AbstractVector;sign=+1)
@@ -65,46 +108,40 @@ function implicit_meff(c::AbstractVector;sign=+1)
     end
     return m
 end
-function implicit_meff(c::AbstractVector,Δc::AbstractVector;sign=+1)
-    m1 = implicit_meff(c;sign)
-    m2 = implicit_meff(c + Δc;sign)
-    m3 = implicit_meff(c - Δc;sign)
-    Δm = @. abs(m3-m2)/2
-    return m1, Δm
-end
-function implicit_meff(corrs::AbstractMatrix;sign=+1)
-    T, N = size(corrs)
-    # create arrays for decay constant
-    corrs_delete1 = zeros(T,N-1)
-    meff = zeros(N,T)
-    # set up jack-knife (one deletion)
-    for i in 1:N
-        for t in 1:T
-            for j in 1:N
-               (j < i) && (corrs_delete1[t,j]   = corrs[t,j])
-               (j > i) && (corrs_delete1[t,j-1] = corrs[t,j])
-            end
-        end
-        # perform averaging for fitting weights
-        C = reshape(mean(corrs_delete1,dims=2),T)
-        meff[i,:] = implicit_meff(C;sign)
-    end
-    return nan_apply_jackknife(meff,dims=1)
-end
-# This function takes care of arrays with additional inidces. The additional 
-# indices are collected as ind by the use of the `axes(corr)` function. This 
-# returns a set of iterators for each additional dimension of the array. We then
-# loop over every additional index using the `Iterators.product` utility 
-function implicit_meff(corrs::AbstractArray;sign=+1)
-    it, iMC, ind... = axes(corrs)
-    size_meff_array = (size(corrs,1),size(corrs)[3:end]...)
-    meff  = zeros(eltype(corrs),size_meff_array)
-    Δmeff = zeros(eltype(corrs),size_meff_array)
+implicit_meff(c::AbstractVector,Δc::AbstractVector;sign=+1) = _meff_generic(c,Δc,implicit_meff;sign)
+implicit_meff(corrs::AbstractMatrix;sign=+1) = _meff_generic(corrs,implicit_meff;sign)
+implicit_meff(corrs::AbstractArray;sign=+1) = _meff_generic(corrs,implicit_meff;sign)
+implicit_meff_jackknife(samples;sign=+1) = _meff_generic_jackknife(samples,implicit_meff;sign) 
+"""
+    log_meff(c::AbstractVector)
 
-    for i in Iterators.product(ind...)
-        # slurping is needed to correctly insert the tuple i into an index
-        c = @view corrs[:,:,i...]
-        meff[:,i...], Δmeff[:,i...] = implicit_meff(c::AbstractMatrix;sign)
+Calculates the standard effective mass of the correlator `c` as:
+m_{eff}(t) = log( | C(t+1)/C(t) | ).
+
+    log_meff(c::AbstractVector,Δc::AbstractVector)
+
+Includes a crude estimate of the uncertainty of the effective mass, when the 
+standard uncertainty `Δc` is provided. For a more reliable provide an array 
+containing measurements of the correlator on each configuration. This will leads
+to a more reliable estimation using the jackknife method.
+
+    log_meff(c::AbstractArray)
+
+Calculates the standard effective mass of the correlator `c` as:
+m_{eff}(t) = log( | C(t+1)/C(t) | ).
+
+The data `c` is assumed to be an array where the first index 
+corresponds to the Euclidean time and the second one to the Monte-Carlo samples. 
+"""
+function log_meff(c::AbstractVector)
+    T = length(c)
+    m = similar(c)
+    for t in 1:T
+        m[t] = log(abs(c[mod1(t+1,T)]/c[t]))
     end
-    return meff, Δmeff
+    return m
 end
+log_meff(c::AbstractVector,Δc::AbstractVector) = _meff_generic(c,Δc,log_meff)
+log_meff(corrs::AbstractMatrix) = _meff_generic(corrs,log_meff)
+log_meff(corrs::AbstractArray) = _meff_generic(corrs,log_meff)
+log_meff_jackknife(samples) = _meff_generic_jackknife(samples,log_meff) 
