@@ -137,7 +137,7 @@ function log_meff(c::AbstractVector)
     T = length(c)
     m = similar(c)
     for t in 1:T
-        m[t] = log(abs(c[mod1(t+1,T)]/c[t]))
+        m[t] = abs(log(c[mod1(t+1,T)]/c[t]))
     end
     return m
 end
@@ -145,3 +145,73 @@ log_meff(c::AbstractVector,Δc::AbstractVector) = _meff_generic(c,Δc,log_meff)
 log_meff(corrs::AbstractMatrix) = _meff_generic(corrs,log_meff)
 log_meff(corrs::AbstractArray) = _meff_generic(corrs,log_meff)
 log_meff_jackknife(samples) = _meff_generic_jackknife(samples,log_meff) 
+"""
+    acosh_meff(c::AbstractVector)
+
+Calculates the effective mass of the correlator `c` as:
+m_{eff}(t) = | acosh(C(t)/C(T/2))/(t-T/2)| .
+
+    acosh_meff(c::AbstractVector,Δc::AbstractVector)
+
+Includes a crude estimate of the uncertainty of the effective mass, when the 
+standard uncertainty `Δc` is provided. For a more reliable provide an array 
+containing measurements of the correlator on each configuration. This will leads
+to a more reliable estimation using the jackknife method.
+
+    acosh_meff(c::AbstractArray)
+
+Calculates the standard effective mass of the correlator `c` as:
+m_{eff}(t) = | acosh(C(t)/C(T/2))/(t-T/2)| .
+
+The data `c` is assumed to be an array where the first index 
+corresponds to the Euclidean time and the second one to the Monte-Carlo samples. 
+"""
+function acosh_meff(c::AbstractVector)
+    T = length(c)
+    m = similar(c)
+    for t in 1:T
+        m[t] = abs(acosh(c[t]/c[T÷2])/(t-T÷2))
+    end
+    return m
+end
+acosh_meff(c::AbstractVector,Δc::AbstractVector) = _meff_generic(c,Δc,log_meff)
+acosh_meff(corrs::AbstractMatrix) = _meff_generic(corrs,log_meff)
+acosh_meff(corrs::AbstractArray) = _meff_generic(corrs,log_meff)
+acosh_meff_jackknife(samples) = _meff_generic_jackknife(samples,log_meff) 
+"""
+    asinh_meff(c::AbstractVector)
+
+Calculates the effective mass of the correlator `c` as:
+m_{eff}(t) = | asinh(C(t)/C(T/2))/(t-T/2)| .
+
+    asinh_meff(c::AbstractVector,Δc::AbstractVector)
+
+Includes a crude estimate of the uncertainty of the effective mass, when the 
+standard uncertainty `Δc` is provided. For a more reliable provide an array 
+containing measurements of the correlator on each configuration. This will leads
+to a more reliable estimation using the jackknife method.
+
+    asinh_meff(c::AbstractArray)
+
+Calculates the standard effective mass of the correlator `c` as:
+m_{eff}(t) = | asinh(C(t)/C(T/2))/(t-T/2)| .
+
+The data `c` is assumed to be an array where the first index 
+corresponds to the Euclidean time and the second one to the Monte-Carlo samples. 
+"""
+function asinh_meff(c::AbstractVector)
+    T = length(c)
+    m = similar(c)
+    for t in 1:T
+        if t == T÷2
+            m[t] = NaN
+        else
+            m[t] = abs(asinh(c[t]/c[T÷2])/(t-T÷2))
+        end
+    end
+    return m
+end
+asinh_meff(c::AbstractVector,Δc::AbstractVector) = _meff_generic(c,Δc,log_meff)
+asinh_meff(corrs::AbstractMatrix) = _meff_generic(corrs,log_meff)
+asinh_meff(corrs::AbstractArray) = _meff_generic(corrs,log_meff)
+asinh_meff_jackknife(samples) = _meff_generic_jackknife(samples,log_meff) 

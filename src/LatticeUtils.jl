@@ -9,7 +9,7 @@ module LatticeUtils
     include("folding.jl")
     export correlator_folding
     include("effective_mass.jl")
-    export implicit_meff, implicit_meff_jackknife
+    export implicit_meff, implicit_meff_jackknife, log_meff, log_meff_jackknife, asinh_meff, asinh_meff_jackknife, asinh_meff, asinh_meff_jackknife
     include("disconnected_loop_product.jl")
     export disconnected_loop_product
     include("variational_analysis.jl")
