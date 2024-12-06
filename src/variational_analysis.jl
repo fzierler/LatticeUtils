@@ -35,21 +35,24 @@ function eigenvalues_jackknife_samples(corr;t0 = 1, imag_thresh = 1E-11)
     max_imag > imag_thresh && @warn "imaginary part of $max_imag exceeds threshold of $imag_thresh"
     return eigvals_jk
 end
-function eigenvalues_eigenvectors_jackknife_samples(corr;t0 = 1)
+function eigenvalues_eigenvectors_jackknife_samples(corr;t0 = 1, imag_thresh = 1E-11)
     sample = delete1_resample(corr)
     nops, nconf, T = size(sample)[2:4]
     eigvals_jk = zeros(eltype(sample),(nops,nconf,T))
     eigvecs_jk = zeros(ComplexF64,(nops,nops,nconf,T))
+    max_imag = 0.0
     for s in 1:nconf, t in 1:T
         # smaller values correspond to a faster decay, and thus correspond to a larger masses
         # use sortby to sort the eigenvalues by ascending eigen-energy of the meson state
         sol = eigen(sample[:,:,s,t],sample[:,:,s,t0],sortby= x-> abs(x))
+        max_imag = max(max_imag, maximum(abs.(imag.(sol.values))))
         eigvals_jk[:,s,t] = real.(sol.values)
         # I am unsure if the average over all eigenvectors is correct.
         for i in 1:2
             eigvecs_jk[:,i,s,t] = normalize(sol.vectors[:,i])
         end
     end
+    max_imag > imag_thresh && @warn "imaginary part of $max_imag exceeds threshold of $imag_thresh"
     return eigvals_jk, eigvecs_jk
 end
 # generate a resample of the original correlator matrix
