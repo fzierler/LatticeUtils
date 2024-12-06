@@ -50,16 +50,11 @@ function disconnected_loop_product(discon1,discon2;rescale=1,subtract_vev=false,
     @. timavg = rescale*timavg/norm
     return permutedims(timavg,(2,1))
 end
-function unbiased_estimator(discon;kws...)
+function disconnected_loop_product(discon;kws...)
     nconf, nhits, T = size(discon)
-    unbiased_estimator(discon[:,1:nhits÷2,:],discon[:,nhits÷2+1:nhits,:];kws...)
+    disconnected_loop_product(discon[:,1:nhits÷2,:],discon[:,nhits÷2+1:nhits,:];kws...)
 end
 function vev_contribution(discon)
     vev = dropdims(mean(discon,dims=(1,2)),dims=(1,2)) 
     return vev
-end
-function rescale_connected!(corr,L)
-    n1 = L^6/2 # from the norm used in HiReo
-    n2 = L^3   # only keep a norm for the spatial volume
-    @. corr  *= (n1/n2)
 end
