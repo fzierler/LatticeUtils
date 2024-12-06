@@ -137,7 +137,7 @@ function log_meff(c::AbstractVector)
     T = length(c)
     m = similar(c)
     for t in 1:T
-        m[t] = abs(log(c[mod1(t+1,T)]/c[t]))
+        m[t] = abs(log(abs(c[mod1(t+1,T)]/c[t])))
     end
     return m
 end
@@ -170,7 +170,7 @@ function acosh_meff(c::AbstractVector)
     T = length(c)
     m = similar(c)
     for t in 1:T
-        m[t] = abs(acosh(c[t]/c[T÷2])/(t-T÷2))
+        m[t] = abs(acosh(abs(c[t]/c[T÷2]))/(t-T÷2))
     end
     return m
 end
@@ -206,7 +206,7 @@ function asinh_meff(c::AbstractVector)
         if t == T÷2
             m[t] = NaN
         else
-            m[t] = abs(asinh(c[t]/c[T÷2])/(t-T÷2))
+            m[t] = abs(asinh(abs(c[t]/c[T÷2]))/(t-T÷2))
         end
     end
     return m
