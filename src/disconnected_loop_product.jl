@@ -28,10 +28,10 @@ function disconnected_loop_product(discon1,discon2;rescale=1,subtract_vev=false,
     
     if subtract_vev
         @inbounds for conf in 1:nconf, h in 1:nhits1, t in 1:T
-            discon1[h,t,conf] = discon1[h,t,conf] - vev1[t]
+            discon1[h,t,conf] = discon1[h,t,conf] - vev1
         end
         @inbounds for conf in 1:nconf, h in 1:nhits2, t in 1:T
-            discon2[h,t,conf] = discon2[h,t,conf] - vev2[t]
+            discon2[h,t,conf] = discon2[h,t,conf] - vev2
         end
     end
     
@@ -55,6 +55,6 @@ function disconnected_loop_product(discon;kws...)
     disconnected_loop_product(discon[:,1:nhits÷2,:],discon[:,nhits÷2+1:nhits,:];kws...)
 end
 function vev_contribution(discon)
-    vev = dropdims(mean(discon,dims=(1,2)),dims=(1,2)) 
+    vev = first(mean(discon)) 
     return vev
 end
