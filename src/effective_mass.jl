@@ -174,10 +174,10 @@ function acosh_meff(c::AbstractVector)
     end
     return m
 end
-acosh_meff(c::AbstractVector,Δc::AbstractVector) = _meff_generic(c,Δc,log_meff)
-acosh_meff(corrs::AbstractMatrix) = _meff_generic(corrs,log_meff)
-acosh_meff(corrs::AbstractArray) = _meff_generic(corrs,log_meff)
-acosh_meff_jackknife(samples) = _meff_generic_jackknife(samples,log_meff) 
+acosh_meff(c::AbstractVector,Δc::AbstractVector) = _meff_generic(c,Δc,acosh_meff)
+acosh_meff(corrs::AbstractMatrix) = _meff_generic(corrs,acosh_meff)
+acosh_meff(corrs::AbstractArray) = _meff_generic(corrs,acosh_meff)
+acosh_meff_jackknife(samples) = _meff_generic_jackknife(samples,acosh_meff) 
 """
     asinh_meff(c::AbstractVector)
 
@@ -211,7 +211,7 @@ function asinh_meff(c::AbstractVector)
     end
     return m
 end
-asinh_meff(c::AbstractVector,Δc::AbstractVector) = _meff_generic(c,Δc,log_meff)
-asinh_meff(corrs::AbstractMatrix) = _meff_generic(corrs,log_meff)
-asinh_meff(corrs::AbstractArray) = _meff_generic(corrs,log_meff)
-asinh_meff_jackknife(samples) = _meff_generic_jackknife(samples,log_meff) 
+asinh_meff(c::AbstractVector,Δc::AbstractVector) = _meff_generic(c,Δc,asinh_meff)
+asinh_meff(corrs::AbstractMatrix) = _meff_generic(corrs,asinh_meff)
+asinh_meff(corrs::AbstractArray) = _meff_generic(corrs,asinh_meff)
+asinh_meff_jackknife(samples) = _meff_generic_jackknife(samples,asinh_meff) 
