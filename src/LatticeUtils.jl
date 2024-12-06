@@ -4,6 +4,7 @@ module LatticeUtils
     using Roots
     using Statistics
     using LinearAlgebra
+    using Plots
 
     include("folding.jl")
     export correlator_folding
