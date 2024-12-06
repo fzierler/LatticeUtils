@@ -9,32 +9,14 @@ function _bin_correlator_matrix(corr;binsize=2)
     end
     return corr_binned
 end
-function eigenvalues(corr;t0=1)
-    eigvals_jk = eigenvalues_jackknife_samples(corr;t0)
-    eigvals, Δeigvals = apply_jackknife(eigvals_jk;dims=2)
-    return eigvals, Δeigvals
-end
+eigenvalues(corr;t0=1) = first(eigenvalues_eigenvectors(corr;t0))
 function eigenvalues_eigenvectors(corr;t0=1)
     eigvals_jk, eigvecs_jk = eigenvalues_eigenvectors_jackknife_samples(corr;t0)
     eigvals, Δeigvals = apply_jackknife(eigvals_jk;dims=2)
     eigvecs, Δeigvecs = apply_jackknife(eigvecs_jk;dims=3)
     return eigvals, Δeigvals, eigvecs, Δeigvecs
 end
-function eigenvalues_jackknife_samples(corr;t0 = 1, imag_thresh = 1E-11)
-    sample = delete1_resample(corr)
-    nops, nconf, T = size(sample)[2:4]
-    eigvals_jk = zeros(eltype(sample),(nops,nconf,T))
-    max_imag = 0.0
-    for s in 1:nconf, t in 1:T
-        # smaller values correspond to a faster decay, and thus correspond to a larger masses
-        # use sortby to sort the eigenvalues by ascending eigen-energy of the meson state
-        vals = eigen(sample[:,:,s,t],sample[:,:,s,t0]).values
-        max_imag = max(max_imag, maximum(abs.(imag.(vals))))
-        eigvals_jk[:,s,t] = real.(vals)
-    end
-    max_imag > imag_thresh && @warn "imaginary part of $max_imag exceeds threshold of $imag_thresh"
-    return eigvals_jk
-end
+eigenvalues_jackknife_samples(corr;kws...) = first(eigenvalues_eigenvectors_jackknife_samples(corr;kws...))
 function eigenvalues_eigenvectors_jackknife_samples(corr;t0 = 1, imag_thresh = 1E-11)
     sample = delete1_resample(corr)
     nops, nconf, T = size(sample)[2:4]
