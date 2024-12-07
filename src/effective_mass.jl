@@ -170,7 +170,12 @@ function acosh_meff(c::AbstractVector)
     T = length(c)
     m = similar(c)
     for t in 1:T
-        m[t] = abs(acosh(abs(c[t]/c[T÷2]))/(t-T÷2))
+        val  = abs(c[t]/c[T÷2])
+        if val < 1
+            m[t] = NaN
+        else
+            m[t] = abs(acosh(val)/(t-T÷2))
+        end
     end
     return m
 end
