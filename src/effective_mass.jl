@@ -170,12 +170,9 @@ function acosh_meff(c::AbstractVector)
     T = length(c)
     m = similar(c)
     for t in 1:T
-        val  = abs(c[t]/c[T÷2])
-        if val < 1
-            m[t] = NaN
-        else
-            m[t] = abs(acosh(val)/(t-T÷2))
-        end
+        # +1 for one-based indexing in julia
+        val  = c[t]/c[T÷2+1]
+        m[t] = val < 1 ? NaN : abs(acosh(val)/(t-T÷2))
     end
     return m
 end
@@ -208,11 +205,8 @@ function asinh_meff(c::AbstractVector)
     T = length(c)
     m = similar(c)
     for t in 1:T
-        if t == T÷2
-            m[t] = NaN
-        else
-            m[t] = abs(asinh(abs(c[t]/c[T÷2]))/(t-T÷2))
-        end
+        val  = c[t]/c[T÷2+1]
+        m[t] = abs(asinh(val)/(t-T÷2))
     end
     return m
 end
