@@ -13,7 +13,7 @@ module LatticeUtils
     include("disconnected_loop_product.jl")
     export disconnected_loop_product
     include("variational_analysis.jl")
-    export eigenvalues, eigenvalues_jackknife_samples, eigenvalues_eigenvectors, eigenvalues_eigenvectors_jackknife_samples
+    export eigenvalues, eigenvalues_jackknife_samples, eigenvalues_eigenvectors, eigenvalues_eigenvectors_jackknife_samples, eigenvalues_eigenvectors_from_samples
     include("plotting.jl")
     export add_mass_band!, add_fit_range!, plot_correlator!
     include("correlator_derivative.jl")

@@ -17,8 +17,11 @@ function eigenvalues_eigenvectors(corr;t0=1)
     return eigvals, Δeigvals, eigvecs, Δeigvecs
 end
 eigenvalues_jackknife_samples(corr;kws...) = first(eigenvalues_eigenvectors_jackknife_samples(corr;kws...))
-function eigenvalues_eigenvectors_jackknife_samples(corr;t0 = 1, imag_thresh = 1E-11)
+function eigenvalues_eigenvectors_jackknife_samples(corr;kws...)
     sample = delete1_resample(corr)
+    eigenvalues_eigenvectors_from_samples(sample;kws...)
+end
+function eigenvalues_eigenvectors_from_samples(sample;t0 = 1, imag_thresh = 1E-11)
     nops, nconf, T = size(sample)[2:4]
     eigvals_jk = zeros(eltype(sample),(nops,nconf,T))
     eigvecs_jk = zeros(ComplexF64,(nops,nops,nconf,T))
@@ -37,6 +40,7 @@ function eigenvalues_eigenvectors_jackknife_samples(corr;t0 = 1, imag_thresh = 1
     max_imag > imag_thresh && @warn "imaginary part of $max_imag exceeds threshold of $imag_thresh"
     return eigvals_jk, eigvecs_jk
 end
+
 # generate a resample of the original correlator matrix
 function delete1_resample(corr_matrix)
     nops,nconf,T = size(corr_matrix)[2:end]
