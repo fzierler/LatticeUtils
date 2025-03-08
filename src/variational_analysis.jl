@@ -33,7 +33,7 @@ function eigenvalues_eigenvectors_from_samples(sample;t0 = 1, imag_thresh = 1E-1
         max_imag = max(max_imag, maximum(abs.(imag.(sol.values))))
         eigvals_jk[:,s,t] = real.(sol.values)
         # I am unsure if the average over all eigenvectors is correct.
-        for i in 1:2
+        for i in 1:nops
             eigvecs_jk[:,i,s,t] = normalize(sol.vectors[:,i])
         end
     end
@@ -45,17 +45,10 @@ end
 function delete1_resample(corr_matrix)
     nops,nconf,T = size(corr_matrix)[2:end]
     samples = similar(corr_matrix)
-    # temporary array for jackknife sampling
-    tmp = zeros(eltype(corr_matrix),(nops,nops,nconf-1,T))
+    # Strategy: Sum over all configs then remove one
+    tmp = dropdims(sum(corr_matrix,dims=3),dims=3)
     for index in 1:nconf    
-        for i in 1:index-1
-            tmp[:,:,i,:] = corr_matrix[:,:,i,:]
-        end
-        for i in 1+index:nconf
-            tmp[:,:,i-1,:] = corr_matrix[:,:,i,:]
-        end
-        # perform average after deleting one sample
-        samples[:,:,index,:] = dropdims(mean(tmp,dims=3),dims=3)
+        @. samples[:,:,index,:] = (tmp - corr_matrix[:,:,index,:])/(nconf-1) 
     end
     return samples
 end
