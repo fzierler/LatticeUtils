@@ -21,14 +21,18 @@ function eigenvalues_eigenvectors_jackknife_samples(corr;kws...)
     sample = delete1_resample(corr)
     eigenvalues_eigenvectors_from_samples(sample;kws...)
 end
-function eigenvalues_eigenvectors_from_samples(sample;t0)
+function eigenvalues_eigenvectors_from_samples(sample;t0,gevp=true)
     nops, nconf, T = size(sample)[2:4]
     # Always save the results as 64bit floating point number even when we are using higher
     # precision datatypes for solivng the (generalised) eigenvalue problem
     eigvals_jk = zeros(Float64,(nops,nconf,T))
     eigvecs_jk = zeros(ComplexF64,(nops,nops,nconf,T))
     for s in 1:nconf, t in 1:T
-        sol = eigen(Hermitian(sample[:,:,s,t]),Hermitian(sample[:,:,s,t0]),sortby= x-> abs(x))
+        if gevp
+            sol = eigen(Hermitian(sample[:,:,s,t]),Hermitian(sample[:,:,s,t0]),sortby= x-> abs(x))
+        else
+            sol = eigen(Hermitian(sample[:,:,s,t]),sortby= x-> abs(x))
+        end
         eigvals_jk[:,s,t] = Float64.(sol.values)
         for i in 1:nops
             eigvecs_jk[:,i,s,t] = normalize(sol.vectors[:,i])
