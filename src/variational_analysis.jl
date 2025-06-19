@@ -29,7 +29,10 @@ function eigenvalues_eigenvectors_from_samples(sample;t0,gevp=true)
     eigvecs_jk = zeros(ComplexF64,(nops,nops,nconf,T))
     for s in 1:nconf, t in 1:T
         if gevp
-            sol = eigen(Hermitian(sample[:,:,s,t]),Hermitian(sample[:,:,s,t0]),sortby= x-> abs(x))
+            t1  = t < T÷2 + 1 ? t0 : T - t0 + 2
+            Ct  = Hermitian(sample[:,:,s,t])
+            Ct0 = Hermitian(sample[:,:,s,t1])
+            sol = eigen(Ct,Ct0,sortby= x-> abs(x))
         else
             sol = eigen(Hermitian(sample[:,:,s,t]),sortby= x-> abs(x))
         end
