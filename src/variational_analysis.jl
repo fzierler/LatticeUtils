@@ -9,35 +9,29 @@ function _bin_correlator_matrix(corr;binsize=2)
     end
     return corr_binned
 end
-eigenvalues(corr;t0=1) = first(eigenvalues_eigenvectors(corr;t0))
-function eigenvalues_eigenvectors(corr;t0=1)
-    eigvals_jk, eigvecs_jk = eigenvalues_eigenvectors_jackknife_samples(corr;t0)
+eigenvalues(corr;kws...) = first(eigenvalues_eigenvectors(corr;kws...))
+eigenvalues_jackknife_samples(corr;kws...) = first(eigenvalues_eigenvectors_jackknife_samples(corr;kws...))
+function eigenvalues_eigenvectors(corr;kws...)
+    eigvals_jk, eigvecs_jk = eigenvalues_eigenvectors_jackknife_samples(corr;kws...)
     eigvals, Δeigvals = apply_jackknife(eigvals_jk;dims=2)
     eigvecs, Δeigvecs = apply_jackknife(eigvecs_jk;dims=3)
     return eigvals, Δeigvals, eigvecs, Δeigvecs
 end
-eigenvalues_jackknife_samples(corr;kws...) = first(eigenvalues_eigenvectors_jackknife_samples(corr;kws...))
 function eigenvalues_eigenvectors_jackknife_samples(corr;kws...)
     sample = delete1_resample(corr)
     eigenvalues_eigenvectors_from_samples(sample;kws...)
 end
-function eigenvalues_eigenvectors_from_samples(sample;t0 = 1, imag_thresh = 1E-11)
+function eigenvalues_eigenvectors_from_samples(sample;t0)
     nops, nconf, T = size(sample)[2:4]
     eigvals_jk = zeros(eltype(sample),(nops,nconf,T))
     eigvecs_jk = zeros(ComplexF64,(nops,nops,nconf,T))
-    max_imag = 0.0
     for s in 1:nconf, t in 1:T
-        # smaller values correspond to a faster decay, and thus correspond to a larger masses
-        # use sortby to sort the eigenvalues by ascending eigen-energy of the meson state
-        sol = eigen(sample[:,:,s,t],sample[:,:,s,t0],sortby= x-> abs(x))
-        max_imag = max(max_imag, maximum(abs.(imag.(sol.values))))
+        sol = eigen(Hermitian(sample[:,:,s,t]),Hermitian(sample[:,:,s,t0]),sortby= x-> abs(x))
         eigvals_jk[:,s,t] = real.(sol.values)
-        # I am unsure if the average over all eigenvectors is correct.
         for i in 1:nops
             eigvecs_jk[:,i,s,t] = normalize(sol.vectors[:,i])
         end
     end
-    max_imag > imag_thresh && @warn "imaginary part of $max_imag exceeds threshold of $imag_thresh"
     return eigvals_jk, eigvecs_jk
 end
 
