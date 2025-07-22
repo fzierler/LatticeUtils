@@ -30,13 +30,19 @@ function eigenvalues_eigenvectors_from_samples(sample;t0,gevp=true,sortby=x-> ab
     for s in 1:nconf, t in 1:T
         if gevp
             t1  = t < T÷2 + 1 ? t0 : T - t0 + 2
-            Ct  = Hermitian(sample[:,:,s,t])
-            Ct0 = Hermitian(sample[:,:,s,t1])
-            sol = eigen(Ct,Ct0,sortby=sortby)
+            try
+                Ct  = Hermitian(sample[:,:,s,t])
+                Ct0 = Hermitian(sample[:,:,s,t1])
+                sol = eigen(Ct,Ct0,sortby=sortby)
+            catch
+                Ct  = sample[:,:,s,t]
+                Ct0 = sample[:,:,s,t1]
+                sol = eigen(Ct,Ct0,sortby=sortby)
+            end
         else
             sol = eigen(Hermitian(sample[:,:,s,t]),sortby=sortby)
         end
-        eigvals_jk[:,s,t] = Float64.(sol.values)
+        eigvals_jk[:,s,t] = Float64.(real.(sol.values))
         for i in 1:nops
             eigvecs_jk[:,i,s,t] = normalize(sol.vectors[:,i])
         end
