@@ -5,6 +5,7 @@ module LatticeUtils
     using Statistics
     using LinearAlgebra
     using Plots
+    using LsqFit
 
     include("folding.jl")
     export correlator_folding
