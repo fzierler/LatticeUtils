@@ -9,6 +9,17 @@ function _bin_correlator_matrix(corr;binsize=2)
     end
     return corr_binned
 end
+function _bin_correlator(corr;binsize=2)
+    N, T = size(corr)
+    corr_binned = zeros(eltype(corr), N÷binsize, T)
+    for i in 1:N÷binsize
+        for j in 1:binsize
+            offset = (i-1)*binsize
+            corr_binned[i,:] += corr[offset+j,:]/binsize
+        end 
+    end
+    return corr_binned
+end
 eigenvalues(corr;kws...) = first(eigenvalues_eigenvectors(corr;kws...))
 eigenvalues_jackknife_samples(corr;kws...) = first(eigenvalues_eigenvectors_jackknife_samples(corr;kws...))
 function eigenvalues_eigenvectors(corr;kws...)
