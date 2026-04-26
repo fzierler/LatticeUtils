@@ -1,4 +1,6 @@
 function errorstring(x,Δx;nsig=2)
+    !isfinite(x) && return "-"
+    !isfinite(Δx) && return "-"
     @assert Δx > 0
     sgn = x < 0 ? "-" : ""
     x = abs(x)  
