@@ -32,7 +32,7 @@ function eigenvalues_eigenvectors_jackknife_samples(corr;kws...)
     sample = delete1_resample(corr)
     eigenvalues_eigenvectors_from_samples(sample;kws...)
 end
-function eigenvalues_eigenvectors_from_samples(sample;t0,gevp=true,sortby=x-> abs(x))
+function eigenvalues_eigenvectors_from_samples(sample;t0,gevp=true,gevp_fixed_t0_diff=false,sortby=x-> abs(x))
     nops, nconf, T = size(sample)[2:4]
     # Always save the results as 64bit floating point number even when we are using higher
     # precision datatypes for solivng the (generalised) eigenvalue problem
@@ -40,7 +40,11 @@ function eigenvalues_eigenvectors_from_samples(sample;t0,gevp=true,sortby=x-> ab
     eigvecs_jk = zeros(ComplexF64,(nops,nops,nconf,T))
     for s in 1:nconf, t in 1:T
         if gevp
-            t1  = t < T÷2 + 1 || t0 <= 2 ? t0 : T - t0 + 2
+            if gevp_fixed_t0_diff
+                t0 = max(1, t - t0)
+            end
+            # use t0 > midpoint for t > midpoint 
+            t1  = (t < T÷2 + 1 || t0 <= 2) ? t0 : T - t0 + 2
             try
                 Ct  = Hermitian(sample[:,:,s,t])
                 Ct0 = Hermitian(sample[:,:,s,t1])
