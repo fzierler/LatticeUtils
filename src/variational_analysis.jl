@@ -41,17 +41,19 @@ function eigenvalues_eigenvectors_from_samples(sample;t0,gevp=true,gevp_fixed_t0
     for s in 1:nconf, t in 1:T
         if gevp
             if gevp_fixed_t0_diff
-                t0 = max(1, t - t0)
+                t1 = max(1, t - t0)
+            else
+                t1 = t0
             end
             # use t0 > midpoint for t > midpoint 
-            t1  = (t < T÷2 + 1 || t0 <= 2) ? t0 : T - t0 + 2
+            t_ref  = (t < T÷2 + 1 || t1 <= 2) ? t1 : T - t1 + 2
             try
                 Ct  = Hermitian(sample[:,:,s,t])
-                Ct0 = Hermitian(sample[:,:,s,t1])
+                Ct0 = Hermitian(sample[:,:,s,t_ref])
                 sol = eigen(Ct,Ct0,sortby=sortby)
             catch
                 Ct  = sample[:,:,s,t]
-                Ct0 = sample[:,:,s,t1]
+                Ct0 = sample[:,:,s,t_ref]
                 sol = eigen(Ct,Ct0,sortby=sortby)
             end
         else
